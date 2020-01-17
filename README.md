@@ -26,6 +26,7 @@ gulp.task('cdn', function() {
         .pipe(gulp.dest('./dist'));
 });
 ```
+## 参数说明
 
 ### originReplace(options)
 
