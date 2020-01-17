@@ -28,8 +28,9 @@ var handlerHTTP = function(str) {
 };
 
 /*
- * option: { js, css, image, cssImage, special }
- * special 需要特殊处理的cdn
+ * option: { js, css, image, cssImage, include, exclude }
+ * include {Object} 需要特殊处理的cdn，正则匹配url
+ * exclude {Array} 排除cdn，不进行替换，正则匹配url
 */
 module.exports = function(option) {
     option = option || {};
@@ -43,17 +44,22 @@ module.exports = function(option) {
         var prefix = '';
         if(!inline) {
             prefix = option[ext] || '';
-            // special处理
-            if ( option.special ) {
-                for ( var key in option.special ) {
-                    key === paths[0] && (prefix = option.special[key] || '');
+            // include处理
+            if ( option.include ) {
+                for ( var key in option.include ) {
+                    new RegExp(key).test(url) && (prefix = option.include[key] || '');
                 }
             }
             prefix && (prefix[prefix.length - 1] === '/' || (prefix += '/'));
         }
 
-        paths.shift(); // 去掉路径首项，一般为域名或相对路径，然后使用prefix代替原域名
-        return prefix + paths.join('/');
+        var newPath = [];
+        for ( var i = 0; i < paths.length; i++ ) {
+            // 去掉域名或相对路径
+            i !== 0 && paths[i] !== '.' && paths[i] !== '..' && newPath.push(paths[i])
+        }
+
+        return prefix + newPath.join('/');
     }
 
     return through.obj(function(file, enc, fn) {
@@ -67,24 +73,40 @@ module.exports = function(option) {
         // default is true
         'undefined' === typeof inlineReplace && (inlineReplace = true);
 
+        var isExclude = function(excludeArr, str) {
+            for ( var i = 0; i < excludeArr.length; i++ ) {
+                if (new RegExp(excludeArr[i]).test(str)) {
+                    return true;
+                }
+            }
+        }
+
         contents = contents.replace(jsReg, function(match, url) {
-                isHTTP(url) && (url = handlerHTTP(url));
-                match = match.replace(/src\s*=\s*["|']([^"'>]+)["|']/, 'src="' + getNewUrl(url, 'js', !inlineReplace && inlineReg.test(match)) + '"');
+                if ( !(option.exclude && isExclude(option.exclude, url)) ) {
+                    isHTTP(url) && (url = handlerHTTP(url));
+                    match = match.replace(/src\s*=\s*["|']([^"'>]+)["|']/, 'src="' + getNewUrl(url, 'js', !inlineReplace && inlineReg.test(match)) + '"');
+                }
                 return match;
             })
             .replace(imageReg, function(match, url) {
-                isHTTP(url) && (url = handlerHTTP(url));
-                match = match.replace(/src\s*=\s*["|']([^"'>]+)["|']/, 'src="' + getNewUrl(url, 'image', !inlineReplace && inlineReg.test(match)) + '"');
+                if ( !(option.exclude && isExclude(option.exclude, url)) ) {
+                    isHTTP(url) && (url = handlerHTTP(url));
+                    match = match.replace(/src\s*=\s*["|']([^"'>]+)["|']/, 'src="' + getNewUrl(url, 'image', !inlineReplace && inlineReg.test(match)) + '"');
+                }
                 return match;
             })
             .replace(cssReg, function(match, url) {
-                isHTTP(url) && (url = handlerHTTP(url));
-                (isCss(match) && (match = match.replace(/href\s*=\s*["|']([^"']+)["|']/, 'href="' + getNewUrl(url, 'css', !inlineReplace && inlineReg.test(match)) + '"')));
+                if ( !(option.exclude && isExclude(option.exclude, url)) ) {
+                    isHTTP(url) && (url = handlerHTTP(url));
+                    (isCss(match) && (match = match.replace(/href\s*=\s*["|']([^"']+)["|']/, 'href="' + getNewUrl(url, 'css', !inlineReplace && inlineReg.test(match)) + '"')));
+                }
                 return match;
             })
             .replace(imgReg, function(match, url) {
-                isHTTP(url) && (url = handlerHTTP(url));
-                isBase64(url) || (match = match.replace(/url\s*\(\s*['|"]?([^'")]+)['|"]?\s*\)/, 'url(' + getNewUrl(url, 'cssImg', false) + ')'));
+                if ( !(option.exclude && isExclude(option.exclude, url)) ) {
+                    isHTTP(url) && (url = handlerHTTP(url));
+                    isBase64(url) || (match = match.replace(/url\s*\(\s*['|"]?([^'")]+)['|"]?\s*\)/, 'url(' + getNewUrl(url, 'cssImg', false) + ')'));
+                }
                 return match;
             });
 

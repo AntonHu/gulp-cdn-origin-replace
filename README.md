@@ -2,6 +2,7 @@ gulp-cdn-origin-replace
 ================
 
 > 替换html里面的js/css/image/data:image/cdn引用域名
+> v0.0.3 新增参数的属性exclude，原属性special更名include，且改用正则匹配完整的cdn
 
 ## 安装
 ```
@@ -16,12 +17,17 @@ var originReplace = require('gulp-cdn-origin-replace');
 gulp.task('cdn', function() {
     return gulp.src('./src/*.html')
         .pipe(originReplace({
-            js: '//js.cdn.cn',
-            css: '//css.cdn.cn',
-            special: {
-                "www.baidu.com": "//github.com",
-                ".": "//npmjs.com"
-            }
+            js: '//js.cdn.cn', // 所有script标签的js引用地址，域名替换为 //js.cdn.cn
+            css: '//css.cdn.cn', // 所有link标签的css引用地址，域名替换为 //css.cdn.cn
+            image: '//image.cdn.cn', // 所有img标签的图片引用地址，域名替换为 //image.cdn.cn
+            cssImg: '//base64.cdn.cn', // 所有base64资源的引用地址，域名替换为 //base64.cdn.cn
+            include: { // 包括以下匹配项
+                "www.baidu.com": "//github.com"
+            },
+            exclude: [ // 排除以下匹配项
+                "github.com",
+                ".tsx"
+            ]
         }))
         .pipe(gulp.dest('./dist'));
 });
@@ -54,10 +60,29 @@ Type: `String`
 
 将base64文件引用的 路径域名/相对路径 替换成设定的字符串
 
-#### options.special
+#### options.include
 Type: `Object`
 
-特殊设定，当引用的路径和special中的配置匹配，以special的配置为准
+在include里可以指定特殊处理的cdn，将采用正则匹配的逻辑，对符合规则的cdn进行指定的替换，优先级高于以上
+##### 示例
+```js
+include: {
+    "baidu": "//github.com" // 当cdn中含有 baidu ，将其域名替换为 //github.com
+}
+```
+
+#### options.exclude
+Type: `Array`
+
+exclude可以指定一个排除在替换处理外的数组，能与数组中任一项匹配的cdn，都不会被替换，优先级最高
+##### 示例
+```js
+// 当cdn中含有github/tsx的，都不会被替换域名
+exclude: [
+    "github",
+    "tsx"
+]
+```
 
 #### options.inlineReplace
 Type: `Boolean`
