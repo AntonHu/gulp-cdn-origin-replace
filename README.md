@@ -1,7 +1,7 @@
-gulp-cdn-origin-replace
-================
+# gulp-cdn-origin-replace
 
 > 替换html里面的js/css/image/data:image/cdn引用域名
+> 
 > v0.0.3 新增参数的属性exclude，原属性special更名include，且改用正则匹配完整的cdn
 
 ## 安装
@@ -40,28 +40,38 @@ gulp.task('cdn', function() {
 
 Type: `Object`
 
+属性 | 类型 | 描述
+:-: | :-: | :-:
+js | `String` | 将js文件引用的 路径域名/相对路径 替换成设定的字符串
+css | `String` | 将css文件引用的 路径域名/相对路径 替换成设定的字符串
+image | `String` | 将image文件引用的 路径域名/相对路径 替换成设定的字符串
+cssImg | `String` | 将base64文件引用的 路径域名/相对路径 替换成设定的字符串
+include | `Object` | 指定特殊处理的cdn，将采用正则匹配的逻辑，对符合规则的cdn进行指定的替换，优先级高于以上
+exclude | `Array` | 指定特殊处理的cdn，将采用正则匹配的逻辑，对符合规则的cdn进行指定的替换，优先级高于以上
+inlineReplace | `Boolean` | 是否替换内联
+
 #### options.js
-Type: `String`
+类型: `String`
 
 将js文件引用的 路径域名/相对路径 替换成设定的字符串
 
 #### options.css
-Type: `String`
+类型: `String`
 
 将css文件引用的 路径域名/相对路径 替换成设定的字符串
 
 #### options.image
-Type: `String`
+类型: `String`
 
 将image文件引用的 路径域名/相对路径 替换成设定的字符串
 
 #### options.cssImg
-Type: `String`
+类型: `String`
 
 将base64文件引用的 路径域名/相对路径 替换成设定的字符串
 
 #### options.include
-Type: `Object`
+类型: `Object`
 
 在include里可以指定特殊处理的cdn，将采用正则匹配的逻辑，对符合规则的cdn进行指定的替换，优先级高于以上
 ##### 示例
@@ -72,7 +82,7 @@ include: {
 ```
 
 #### options.exclude
-Type: `Array`
+类型: `Array`
 
 exclude可以指定一个排除在替换处理外的数组，能与数组中任一项匹配的cdn，都不会被替换，优先级最高
 ##### 示例
@@ -85,8 +95,8 @@ exclude: [
 ```
 
 #### options.inlineReplace
-Type: `Boolean`
-Default: `true`
+类型: `Boolean`
+默认值: `true`
 
 Whether replace tag with `inline` attribute.
 
